@@ -5,10 +5,8 @@
 #include"ObjIO.h"
 #include"string"
 #include"HalfEdgeMesh.h"
-int main() {
-    SetConsoleOutputCP(CP_UTF8);
-    SetConsoleCP(CP_UTF8);
-
+#include"renderer/FrameBuffer.h"
+void testHalfEdgeMash(){
     std::string filename="assets/coca-cola.obj";
     ObjIO io;
     Mesh mesh;
@@ -71,5 +69,17 @@ int main() {
         std::cout<<f<<' ';
     }
     std::cout<<'\n'; 
+}
+void testRenderer(){
+    FrameBuffer buffer(16,16);
+    buffer.setPixel(1,1,{0,1,0});
+    buffer.savePPM("test.ppm");
+}
+int main() {
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+
+    testRenderer();
+
     return 0;
 }
