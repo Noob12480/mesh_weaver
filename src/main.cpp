@@ -4,7 +4,7 @@
 #include<Eigen/Geometry>
 #include"ObjIO.h"
 #include"string"
-#include"HalfEdgeMesh.h"
+#include"geometry/HalfEdgeMesh.h"
 #include"renderer/Rasterizer.h"
 #include"renderer/Camera.h"
 void testHalfEdgeMash(){
@@ -108,8 +108,37 @@ int main() {
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
 
-    testRenderer();
+    //testRenderer();
     //testHalfEdgeMash();
+
+    FrameBuffer buffer(512, 512);
+    buffer.clearColor(Vec3d(0, 0, 0));
+    buffer.clearDepth(1.0);
+
+    Rasterizer rasterizer(buffer);
+
+    Camera camera;
+    camera.setPosition(Vec3d(0, 0, 5));
+    camera.setTarget(Vec3d(0, 0, 0));
+    camera.setUp(Vec3d(0, 1, 0));
+    camera.setPerspective(90, 1.0, 1.0, 10.0);
+
+    Mat4d VP = camera.projectionMatrix() * camera.viewMatrix();
+
+
+
+    std::string filename="assets/coca-cola.obj";
+    ObjIO io;
+    Mesh mesh;
+    io.load(filename,mesh);
+
+    HalfEdgeMesh halfEdgeMesh;
+    halfEdgeMesh.buildFromMesh(mesh);
+    std::cout<<"网格合法性验证:\n"<<halfEdgeMesh.validate()<<'\n';
+
+    rasterizer.drawMesh(halfEdgeMesh, VP, Vec3d(0,1,0));
+
+    buffer.savePPM("test.ppm");
 
     return 0;
 }

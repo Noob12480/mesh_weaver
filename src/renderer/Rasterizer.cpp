@@ -97,6 +97,30 @@ void Rasterizer::drawTriangle3D(const Vec3d& p0,const Vec3d& p1,const Vec3d& p2,
     drawTriangle(sp0,sp1,sp2,color);
 }
 
+void Rasterizer::drawMesh(const HalfEdgeMesh &mesh, const Mat4d &MVP, const Vec3d &color){
+    for(int i=0;i<mesh.getFaces().size();i++){
+        std::vector<int> vi=mesh.faceVertices(i);
+
+        if(vi.size()<3) continue;
+        int o=vi[0];
+        const HEVert &v0=mesh.getVertices().at(o);
+        Vec3d p0(v0.x,v0.y,v0.z);
+
+        for(int j=1;j+1<vi.size();j++){
+            int vertId1=vi[j];
+            int vertId2=vi[j+1];
+
+            const HEVert &v1=mesh.getVertices().at(vertId1);
+            const HEVert &v2=mesh.getVertices().at(vertId2);
+            
+            Vec3d p1(v1.x,v1.y,v1.z);
+            Vec3d p2(v2.x,v2.y,v2.z);
+
+            drawTriangle3D(p0,p1,p2,MVP,color);
+        }
+    }
+}
+
 Vec3d Rasterizer::clipToNDC(const Vec4d& clip) const{
     if(std::abs(clip.w())<1e-18)return Vec3d(0,0,0);
     return Vec3d(clip.x()/clip.w(), clip.y()/clip.w(), clip.z()/clip.w());

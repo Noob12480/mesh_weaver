@@ -1,5 +1,4 @@
 #include"ObjIO.h"
-#include"Mesh.h"
 #include<fstream>
 #include<iostream>
 bool ObjIO::load(const std::string &filename, Mesh &mesh){
