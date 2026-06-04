@@ -6,6 +6,7 @@
 #include"string"
 #include"HalfEdgeMesh.h"
 #include"renderer/Rasterizer.h"
+#include"renderer/Camera.h"
 void testHalfEdgeMash(){
     std::string filename="assets/coca-cola.obj";
     ObjIO io;
@@ -71,23 +72,37 @@ void testHalfEdgeMash(){
     std::cout<<'\n'; 
 }
 void testRenderer(){
-    FrameBuffer buffer(512,512);
+    FrameBuffer buffer(512, 512);
+    buffer.clearColor(Vec3d(0, 0, 0));
     buffer.clearDepth(1.0);
+
     Rasterizer rasterizer(buffer);
 
-    Vec3d p0(20,40,0.99);
-    Vec3d p1(300,400,00.2);
-    Vec3d p2(500,200,0.1);
-    Vec3d color(0,1,0);
-    rasterizer.drawTriangle(p0,p1,p2,color);
+    Camera camera;
+    camera.setPosition(Vec3d(0, 0, 5));
+    camera.setTarget(Vec3d(0, 0, 0));
+    camera.setUp(Vec3d(0, 1, 0));
+    camera.setPerspective(90, 1.0, 1.0, 10.0);
 
-    Vec3d p3(0,0,0.3);
-    Vec3d p4(480,300,0.2);
-    Vec3d p5(200,500,0.05);
-    Vec3d color1(1,1,0);
-    rasterizer.drawTriangle(p3,p4,p5,color1);
+    Mat4d VP = camera.projectionMatrix() * camera.viewMatrix();
+
+    Vec3d p0(-1, -1, 0);
+    Vec3d p1( 1, -1, 0);
+    Vec3d p2( 0,  1, 0);
+
+    rasterizer.drawTriangle3D(p0, p1, p2, VP, Vec3d(0, 1, 0));
 
     buffer.savePPM("test.ppm");
+}
+Vec3d projectPoint(const Mat4d& M, const Vec3d& p) {
+    Eigen::Vector4d hp(p.x(), p.y(), p.z(), 1.0);
+    Eigen::Vector4d clip = M * hp;
+
+    return Vec3d(
+        clip.x() / clip.w(),
+        clip.y() / clip.w(),
+        clip.z() / clip.w()
+    );
 }
 int main() {
     SetConsoleOutputCP(CP_UTF8);

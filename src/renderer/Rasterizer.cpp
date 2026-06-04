@@ -87,3 +87,29 @@ void Rasterizer::drawTriangle(const Vec3d& p0,const Vec3d& p1,const Vec3d& p2,co
         }
     }
 }
+
+void Rasterizer::drawTriangle3D(const Vec3d& p0,const Vec3d& p1,const Vec3d& p2,const Mat4d& MVP,const Vec3d& color){
+    //3d tri->2d tri
+    Vec3d sp0=transPoint(p0,MVP);
+    Vec3d sp1=transPoint(p1,MVP);
+    Vec3d sp2=transPoint(p2,MVP);
+    //std::cout<<sp0<<' '<<sp1<<' '<<sp2<<' '<<'\n';
+    drawTriangle(sp0,sp1,sp2,color);
+}
+
+Vec3d Rasterizer::clipToNDC(const Vec4d& clip) const{
+    if(std::abs(clip.w())<1e-18)return Vec3d(0,0,0);
+    return Vec3d(clip.x()/clip.w(), clip.y()/clip.w(), clip.z()/clip.w());
+}
+
+Vec3d Rasterizer::NDCToScreen(const Vec3d &pos) const{
+    return Vec3d((pos.x()+1.0)*0.5*(buffer.getWidth()-1), (-pos.y()+1.0)*0.5*(buffer.getHeight()-1), (pos.z()+1.0)*0.5);
+}
+
+Vec3d Rasterizer::transPoint(const Vec3d &p, const Mat4d &MVP) const{
+    Vec4d pp(p.x(),p.y(),p.z(),1);
+    Vec4d clip=MVP*pp;
+    Vec3d ndc=clipToNDC(clip);
+    Vec3d screenPos=NDCToScreen(ndc);
+    return screenPos;
+}

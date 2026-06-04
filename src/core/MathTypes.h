@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Eigen/Core>
+#include <Eigen/Geometry>
 
 using Vec2d = Eigen::Vector2d;
 using Vec3d = Eigen::Vector3d;
