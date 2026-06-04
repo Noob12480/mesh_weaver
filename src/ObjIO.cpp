@@ -1,6 +1,27 @@
 #include"ObjIO.h"
 #include<fstream>
 #include<iostream>
+ObjIndex parseObjIndex(const std::string& token) {
+    ObjIndex idx;
+    idx.v = -1;
+    idx.vt = -1;
+    idx.vn = -1;
+    std::stringstream ss(token);
+    std::string part;
+    //v
+    if(std::getline(ss, part, '/')){
+        if (!part.empty()) idx.v = std::stoi(part) - 1;
+    }
+    //vt
+    if(std::getline(ss, part, '/')){
+        if (!part.empty()) idx.vt = std::stoi(part) - 1;
+    }
+    //vn
+    if(std::getline(ss, part, '/')){
+        if (!part.empty()) idx.vn = std::stoi(part) - 1;
+    }
+    return idx;
+}
 bool ObjIO::load(const std::string &filename, Mesh &mesh){
     
     std::ifstream in(filename);
@@ -36,17 +57,13 @@ bool ObjIO::load(const std::string &filename, Mesh &mesh){
         } else if(symble=="f"){
             std::string token;
             Face f;
-            while(ss>>token){
-                int pos=token.find('/');
-                if(pos==-1){
-                    std::cerr<<"不合法的面: "<<line<<'\n';
+            while (ss >> token) {
+                ObjIndex idx = parseObjIndex(token);
+                if (idx.v < 0) {
+                    std::cerr << "不合法的面索引: " << line << '\n';
                     return false;
-                } else {
-                    int v,vt;
-                    v=std::stoi(token.substr(0,pos))-1;
-                    vt=std::stoi(token.substr(pos+1))-1;
-                    f.indices.push_back({v,vt,0});
                 }
+                f.indices.push_back(idx);
             }
             mesh.faces.push_back(f);
         } 

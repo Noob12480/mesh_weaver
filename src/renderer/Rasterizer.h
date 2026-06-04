@@ -17,5 +17,5 @@ private:
 
     Vec3d clipToNDC(const Vec4d &clip) const;
     Vec3d NDCToScreen(const Vec3d &pos) const;
-    Vec3d transPoint(const Vec3d &p, const Mat4d &MVP) const;
+    bool transPoint(const Vec3d &p, const Mat4d &MVP, Vec3d &screenPos) const;
 };

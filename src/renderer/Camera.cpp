@@ -13,7 +13,7 @@ Mat4d Camera::viewMatrix() const{
         0, 0, 0, 1;
     
     Vec3d g=(target-position).normalized();
-    Vec3d d=g.cross(up);
+    Vec3d d=g.cross(up).normalized();
     Vec3d t=d.cross(g).normalized();
     Mat4d R;
     R<< d.x(), d.y(), d.z(), 0,
