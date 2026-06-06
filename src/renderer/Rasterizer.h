@@ -11,6 +11,11 @@ enum class CullMode {
     Back
 };
 
+struct RenderStats {
+    int totalTriangles = 0;
+    int renderedTriangles = 0;
+};
+
 class Rasterizer {
 public:
     explicit Rasterizer(FrameBuffer &buffer);
@@ -25,9 +30,12 @@ public:
     void drawMesh(const HalfEdgeMesh &mesh, const Shader &shader);
 
     void setCullMode(CullMode mode){cullMode = mode;}
+    void resetStats(){ stats = RenderStats{}; }
+    const RenderStats& getStats() const{ return stats; }
 
 private:
     FrameBuffer& buffer;
+    RenderStats stats;
     CullMode cullMode=CullMode::Back;
 
     bool insideClipSpace(const Vec4d& clip) const;

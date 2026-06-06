@@ -217,6 +217,12 @@ void Rasterizer::drawTriangle(const VertexOutput& o0,const VertexOutput& o1,cons
         return;
     }
 
+    if(minX>maxX||minY>maxY){
+        return;
+    }   
+
+    stats.renderedTriangles++;
+
     for(int y=minY;y<=maxY;y++){
         for(int x=minX;x<=maxX;x++){
             //叉乘
@@ -268,6 +274,7 @@ void Rasterizer::drawTriangle3D(const VertexOutput &o0,const VertexOutput &o1,co
     // if(o0.clipPosition.w()>0||o1.clipPosition.w()>0||o2.clipPosition.w()>0){
     //     return;
     // }
+    stats.totalTriangles++;
     if(rejectClip(o0,o1,o2)){
         return;
     }
@@ -285,7 +292,7 @@ void Rasterizer::drawTriangle3D(const VertexOutput &o0,const VertexOutput &o1,co
         const VertexOutput& oo0 = poly[0];
         const VertexOutput& oo1 = poly[i];
         const VertexOutput& oo2 = poly[i + 1];
-        drawTriangle(o0,o1,o2,shader);
+        drawTriangle(oo0,oo1,oo2,shader);
     }
 }
 
@@ -386,12 +393,12 @@ bool Rasterizer::rejectClip(const VertexOutput &a, const VertexOutput &b, const 
 
 bool Rasterizer::acceptClip(const VertexOutput &a, const VertexOutput &b, const VertexOutput &c) const{
     for(int p=0;p<6;p++){
-        if(side(a,p)>-1e-8&&side(b,p)>-1e-8&&side(c,p)>-1e-8){
+        if(side(a,p)<-1e-8||side(b,p)<-1e-8||side(c,p)<-1e-8){
             //std::cout<<"111"<<'\n';
-            return true;
+            return false;
         }
     }
-    return false;
+    return true;
 }
 
 double Rasterizer::side(const VertexOutput &v, int plane) const{

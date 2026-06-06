@@ -5,8 +5,15 @@
 #endif
 
 #include <windows.h>
+#include "core/MathTypes.h"
 
 class FrameBuffer;
+
+struct RenderOverlay {
+    Vec3d cameraPos = Vec3d(0, 0, 0);
+    int visibleTriangles = 0;
+    int totalTriangles = 0;
+};
 
 class Win32Window {
 public:
@@ -14,7 +21,7 @@ public:
     ~Win32Window();
     bool shouldClose() const;
     void pollEvents();
-    void present(const FrameBuffer& buffer);
+    void Win32Window::present(const FrameBuffer& buffer, const RenderOverlay& overlay);
 
 private:
     int width;

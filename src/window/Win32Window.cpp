@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <iomanip>
 
 LRESULT CALLBACK Win32Window::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     Win32Window* window = nullptr;
@@ -90,7 +91,7 @@ void Win32Window::pollEvents() {
     }
 }
 
-void Win32Window::present(const FrameBuffer& buffer) {
+void Win32Window::present(const FrameBuffer& buffer, const RenderOverlay& overlay) {
     int w = buffer.getWidth();
     int h = buffer.getHeight();
 
@@ -116,7 +117,7 @@ void Win32Window::present(const FrameBuffer& buffer) {
     BITMAPINFO bmi = {};
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth = w;
-    bmi.bmiHeader.biHeight = -h; // top-down
+    bmi.bmiHeader.biHeight = -h;
     bmi.bmiHeader.biPlanes = 1;
     bmi.bmiHeader.biBitCount = 32;
     bmi.bmiHeader.biCompression = BI_RGB;
@@ -132,6 +133,25 @@ void Win32Window::present(const FrameBuffer& buffer) {
         DIB_RGB_COLORS,
         SRCCOPY
     );
+
+    SetBkMode(dc, TRANSPARENT);
+    SetTextColor(dc, RGB(255, 255, 255));
+
+    std::ostringstream line1;
+    line1 << std::fixed << std::setprecision(2)
+          << "Camera: ("
+          << overlay.cameraPos.x() << ", "
+          << overlay.cameraPos.y() << ", "
+          << overlay.cameraPos.z() << ")";
+
+    std::ostringstream line2;
+    line2 << "Triangles: "
+          << overlay.visibleTriangles
+          << " / "
+          << overlay.totalTriangles;
+
+    TextOutA(dc, 10, 10, line1.str().c_str(), static_cast<int>(line1.str().size()));
+    TextOutA(dc, 10, 30, line2.str().c_str(), static_cast<int>(line2.str().size()));
 
     ReleaseDC(hwnd, dc);
 }

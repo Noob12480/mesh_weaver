@@ -95,53 +95,58 @@ void testRenderer(){
 
     buffer.savePPM("test.ppm");
 }
-void updateOrbitCamera(Camera& camera, const Vec3d& target, double& radius, double& yaw, double& pitch, double dt) {
-    double moveSpeed = 3.0;
-    double rotateSpeed = 1.5;
+void updateCamera(Camera& camera, const Vec3d& modelCenter, double radius, double& yaw, double& pitch, double dt){
+    const Vec3d worldUp(0, 1, 0);
 
-    // W：靠近模型
-    if (GetAsyncKeyState('W') & 0x8000) {
-        radius -= moveSpeed * dt;
+    double moveSpeed = (std::max)(1.0, radius * 2.5);
+    double mouseSpeed = 0.004;
+
+    static bool firstMouse = true;
+    static POINT lastMouse;
+
+    POINT curMouse;
+    GetCursorPos(&curMouse);
+
+    if (firstMouse) {
+        lastMouse = curMouse;
+        firstMouse = false;
     }
 
-    // S：远离模型
-    if (GetAsyncKeyState('S') & 0x8000) {
-        radius += moveSpeed * dt;
+    if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) {
+        double dx = double(curMouse.x - lastMouse.x);
+        double dy = double(curMouse.y - lastMouse.y);
+
+        yaw   += dx * mouseSpeed;
+        pitch -= dy * mouseSpeed;
+
+        double maxPitch = 1.55;
+        pitch = std::clamp(pitch, -maxPitch, maxPitch);
     }
 
-    // A：绕模型向左
-    if (GetAsyncKeyState('A') & 0x8000) {
-        yaw -= rotateSpeed * dt;
-    }
+    lastMouse = curMouse;
 
-    // D：绕模型向右
-    if (GetAsyncKeyState('D') & 0x8000) {
-        yaw += rotateSpeed * dt;
-    }
+    Vec3d forward;
+    forward.x() = std::cos(pitch) * std::sin(yaw);
+    forward.y() = std::sin(pitch);
+    forward.z() = -std::cos(pitch) * std::cos(yaw);
+    forward.normalize();
 
-    // Shift：绕模型向下
-    if (GetAsyncKeyState(VK_SHIFT) & 0x8000) {
-        pitch -= rotateSpeed * dt;
-    }
+    Vec3d right = forward.cross(worldUp).normalized();
 
-    // Space：绕模型向上
-    if (GetAsyncKeyState(VK_SPACE) & 0x8000) {
-        pitch += rotateSpeed * dt;
-    }
+    Vec3d pos = camera.getPosition();
+    double step = moveSpeed * dt;
 
-    radius = (std::max)(radius, 1.0);
+    if (GetAsyncKeyState('W') & 0x8000) pos += forward * step;
+    if (GetAsyncKeyState('S') & 0x8000) pos -= forward * step;
+    if (GetAsyncKeyState('A') & 0x8000) pos -= right * step;
+    if (GetAsyncKeyState('D') & 0x8000) pos += right * step;
 
-    double maxPitch = 1.55; // 接近 89 度
-    pitch = std::clamp(pitch, -maxPitch, maxPitch);
+    if (GetAsyncKeyState(VK_SHIFT) & 0x8000) pos -= worldUp * step;
+    if (GetAsyncKeyState(VK_SPACE) & 0x8000) pos += worldUp * step;
 
-    Vec3d offset;
-    offset.x() = radius * std::cos(pitch) * std::sin(yaw);
-    offset.y() = radius * std::sin(pitch);
-    offset.z() = radius * std::cos(pitch) * std::cos(yaw);
-
-    camera.setPosition(target + offset);
-    camera.setTarget(target);
-    camera.setUp(Vec3d(0, 1, 0));
+    camera.setPosition(pos);
+    camera.setTarget(pos + forward);
+    camera.setUp(worldUp);
 }
 int main() {
     SetConsoleOutputCP(CP_UTF8);
@@ -172,16 +177,19 @@ int main() {
     double radius = 5.0;
     double yaw = 0.0;
     double pitch = 0.0;
+
     //return 0;
     while (!window.shouldClose()) {
         window.pollEvents();
 
         double dt = 1.0 / 60.0;
-        updateOrbitCamera(camera, modelCenter, radius, yaw, pitch, dt);
+        updateCamera(camera, modelCenter, radius, yaw, pitch, dt);
 
         Mat4d Model=Mat4d::Identity();
         Mat4d MVP = Model * camera.projectionMatrix() * camera.viewMatrix();
 
+        rasterizer.resetStats();
+        
         buffer.clearColor(Vec3d(0, 0, 0));
         buffer.clearDepth(1.0);
 
@@ -189,7 +197,7 @@ int main() {
         PhongShader shader(MVP,Model,Vec3d(1.0,1.0,1.0), Vec3d(0,0,5), camera.getPosition());
         rasterizer.drawMesh(halfEdgeMesh, shader);
         //rasterizer.drawMesh(halfEdgeMesh, VP, Vec3d(0,1,0));
-        window.present(buffer);
+        window.present(buffer, {camera.getPosition(),rasterizer.getStats().totalTriangles,rasterizer.getStats().renderedTriangles});
     }
 
     return 0;
