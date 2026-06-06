@@ -2,8 +2,8 @@
 
 ## v 1.0.0
 ---
-| <img src="screenshot/flat0.png" width="250"> | <img src="screenshot/flat1.png" width="250"> | <img src="screenshot/flat2.png" width="250"> |
-| <img src="screenshot/phong0.png" width="250"> | <img src="screenshot/phong1.png" width="250"> | <img src="screenshot/phong2.png" width="250"> |
+ <img src="screenshot/flat0.png" width="250">  <img src="screenshot/flat1.png" width="250">  <img src="screenshot/flat2.png" width="250"> 
+ <img src="screenshot/phong0.png" width="250">  <img src="screenshot/phong1.png" width="250">  <img src="screenshot/phong2.png" width="250"> 
 
 ---
 ###
