@@ -4,8 +4,9 @@
 #define NOMINMAX
 #endif
 
-#include <windows.h>
-#include "core/MathTypes.h"
+#include<windows.h>
+#include"core/MathTypes.h"
+#include<string>
 
 class FrameBuffer;
 
@@ -13,6 +14,8 @@ struct RenderOverlay {
     Vec3d cameraPos = Vec3d(0, 0, 0);
     int visibleTriangles = 0;
     int totalTriangles = 0;
+    std::string currentShader ="";
+    std::string cullMode = "";
 };
 
 class Win32Window {

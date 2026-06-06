@@ -30,8 +30,9 @@ public:
     void drawMesh(const HalfEdgeMesh &mesh, const Shader &shader);
 
     void setCullMode(CullMode mode){cullMode = mode;}
-    void resetStats(){ stats = RenderStats{}; }
-    const RenderStats& getStats() const{ return stats; }
+    CullMode getCullMode() const{return cullMode;}
+    void resetStats(){ stats = RenderStats{};}
+    const RenderStats& getStats() const{ return stats;}
 
 private:
     FrameBuffer& buffer;

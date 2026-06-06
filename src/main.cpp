@@ -8,6 +8,52 @@
 #include"renderer/Rasterizer.h"
 #include"renderer/Camera.h"
 #include"window/Win32Window.h"
+#include<functional>
+#include<string>
+
+struct ShaderContext {
+    Mat4d MVP;
+    Mat4d Model;
+    Vec3d baseColor;
+    Vec3d lightDir;
+    Vec3d lightPos;
+    Vec3d cameraPos;
+};
+struct ShaderEntry {
+    std::string name;
+    std::function<std::unique_ptr<Shader>(const ShaderContext&)> create;
+};
+
+std::vector<ShaderEntry> shaders;
+int shaderIndex = 0;
+
+void init(){
+    shaders.push_back({
+        "Flat",
+        [](const ShaderContext& ctx) {
+            return std::make_unique<FlatShader>(
+                ctx.MVP,
+                ctx.Model,
+                ctx.baseColor,
+                ctx.lightPos,
+                ctx.cameraPos
+            );
+        }
+    });
+    shaders.push_back({
+        "Phong",
+        [](const ShaderContext& ctx) {
+            return std::make_unique<PhongShader>(
+                ctx.MVP,
+                ctx.Model,
+                ctx.baseColor,
+                ctx.lightPos,
+                ctx.cameraPos
+            );
+        }
+    });
+}
+
 void testHalfEdgeMash(){
     std::string filename="assets/coca-cola.obj";
     ObjIO io;
@@ -148,9 +194,63 @@ void updateCamera(Camera& camera, const Vec3d& modelCenter, double radius, doubl
     camera.setTarget(pos + forward);
     camera.setUp(worldUp);
 }
-int main() {
+void updateShader() {
+    static bool lastR = false;
+    bool curR = (GetAsyncKeyState('R') & 0x8000) != 0;
+    if (curR && !lastR) {
+        shaderIndex = (shaderIndex + 1) % shaders.size();
+    }
+    lastR = curR;
+}
+void updateCullMode(Rasterizer& rasterizer) {
+    static bool lastF = false;
+    bool curF = (GetAsyncKeyState('F') & 0x8000) != 0;
+    if (curF && !lastF) {
+        CullMode mode = rasterizer.getCullMode();
+
+        if (mode == CullMode::None) {
+            rasterizer.setCullMode(CullMode::Back);
+            //std::cout<<"111"<<'\n';
+        }
+        else if (mode == CullMode::Back) {
+            rasterizer.setCullMode(CullMode::Front);
+        }
+        else {
+            rasterizer.setCullMode(CullMode::None);
+        }
+    }
+    lastF = curF;
+}
+std::string cullModeName(CullMode mode) {
+    switch (mode) {
+    case CullMode::None: return "None";
+    case CullMode::Back: return "Back";
+    case CullMode::Front: return "Front";
+    default: return "Unknown";
+    }
+}
+int main(int argc, char** argv) {
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
+
+    //模型
+    std::string filename="assets/FinalBaseMesh.obj";
+    //std::string filename="assets/coca-cola.obj";
+    //std::string filename="assets/Low-Poly_Models.obj";
+    if (argc >= 2) {
+        filename = argv[1];
+    }
+    ObjIO io;
+    Mesh mesh;
+    if (!ObjIO::load(filename, mesh)) {
+        std::cerr<<"无效的路径: "<<filename<<'\n';
+        return -1;
+    }
+    HalfEdgeMesh halfEdgeMesh;
+    halfEdgeMesh.buildFromMesh(mesh);
+    std::cout<<"网格合法性验证:\n"<<halfEdgeMesh.validate()<<'\n';
+
+    init();
     //光栅化渲染器
     FrameBuffer buffer(512, 512);
     Rasterizer rasterizer(buffer);
@@ -162,16 +262,6 @@ int main() {
     camera.setPerspective(90, 1.0, 0.001, 100.0);
     
     Win32Window window(512, 512, L"Mesh Lab");
-    //模型
-    std::string filename="assets/FinalBaseMesh.obj";
-    //std::string filename="assets/coca-cola.obj";
-    //std::string filename="assets/Low-Poly_Models.obj";
-    ObjIO io;
-    Mesh mesh;
-    io.load(filename,mesh);
-    HalfEdgeMesh halfEdgeMesh;
-    halfEdgeMesh.buildFromMesh(mesh);
-    std::cout<<"网格合法性验证:\n"<<halfEdgeMesh.validate()<<'\n';
 
     Vec3d modelCenter(0, 0, 0);
     double radius = 5.0;
@@ -189,15 +279,27 @@ int main() {
         Mat4d MVP = Model * camera.projectionMatrix() * camera.viewMatrix();
 
         rasterizer.resetStats();
-        
+
         buffer.clearColor(Vec3d(0, 0, 0));
         buffer.clearDepth(1.0);
 
         //FlatShader shader(MVP,Vec3d(0,1,0),Vec3d(0,1,1));
-        PhongShader shader(MVP,Model,Vec3d(1.0,1.0,1.0), Vec3d(0,0,5), camera.getPosition());
-        rasterizer.drawMesh(halfEdgeMesh, shader);
+        //PhongShader shader();
+        //按P切换着色模型
+        updateShader();
+
+        //按F切换背面剔除模式
+        updateCullMode(rasterizer);
+        ShaderContext ctx={MVP,Model,Vec3d(1.0,1.0,1.0),Vec3d(0,0,1),Vec3d(0,0,5), camera.getPosition()};
+
+        std::string shaderName=shaders[shaderIndex].name;
+        auto shader = shaders[shaderIndex].create(ctx);
+
+        rasterizer.drawMesh(halfEdgeMesh, *shader);
         //rasterizer.drawMesh(halfEdgeMesh, VP, Vec3d(0,1,0));
-        window.present(buffer, {camera.getPosition(),rasterizer.getStats().totalTriangles,rasterizer.getStats().renderedTriangles});
+        window.present(buffer, {camera.getPosition(),
+            rasterizer.getStats().totalTriangles,rasterizer.getStats().renderedTriangles,
+            shaderName, cullModeName(rasterizer.getCullMode())});
     }
 
     return 0;

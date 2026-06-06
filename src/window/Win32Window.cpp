@@ -150,8 +150,18 @@ void Win32Window::present(const FrameBuffer& buffer, const RenderOverlay& overla
           << " / "
           << overlay.totalTriangles;
 
+    std::ostringstream line3;
+    line3 << "Current Shader: "
+          << overlay.currentShader;
+
+    std::ostringstream line4;
+    line4 << "Cull Mode: "
+          << overlay.cullMode;
+
     TextOutA(dc, 10, 10, line1.str().c_str(), static_cast<int>(line1.str().size()));
     TextOutA(dc, 10, 30, line2.str().c_str(), static_cast<int>(line2.str().size()));
+    TextOutA(dc, 10, 50, line3.str().c_str(), static_cast<int>(line3.str().size()));
+    TextOutA(dc, 10, 70, line4.str().c_str(), static_cast<int>(line4.str().size()));
 
     ReleaseDC(hwnd, dc);
 }

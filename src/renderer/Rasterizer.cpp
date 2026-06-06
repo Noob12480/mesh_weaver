@@ -242,7 +242,7 @@ void Rasterizer::drawTriangle(const VertexOutput& o0,const VertexOutput& o1,cons
                 double depth=(ap0*p0.z()+ap1*p1.z()+ap2*p2.z())/a;
 
                 if(buffer.depthTest(x,y,depth)){
-                        //插值
+                    //插值
                     double s0=ap0/a;
                     double s1=ap1/a;
                     double s2=ap2/a;
