@@ -4,6 +4,13 @@
 #include"core/MathTypes.h"
 #include"geometry/HalfEdgeMesh.h"
 #include"Shader.h" 
+
+enum class CullMode {
+    None,
+    Front,
+    Back
+};
+
 class Rasterizer {
 public:
     explicit Rasterizer(FrameBuffer &buffer);
@@ -14,13 +21,25 @@ public:
     void drawMesh(const HalfEdgeMesh &mesh, const Mat4d &MVP, const Vec3d &color);
 
     void drawTriangle(const VertexOutput &o0,const VertexOutput &o1,const VertexOutput &o2,const Shader &shader);
-    void drawTriangle3D(const VertexInput &p0,const VertexInput &p1,const VertexInput &p2, const Shader &shader);
+    void drawTriangle3D(const VertexOutput &o0,const VertexOutput &o1,const VertexOutput &o2, const Shader &shader);
     void drawMesh(const HalfEdgeMesh &mesh, const Shader &shader);
+
+    void setCullMode(CullMode mode){cullMode = mode;}
 
 private:
     FrameBuffer& buffer;
+    CullMode cullMode=CullMode::Back;
+
     bool insideClipSpace(const Vec4d& clip) const;
     bool clipToNDC(const Vec4d &clip, Vec3d &ndc) const;
     Vec3d NDCToScreen(const Vec3d &pos) const;
     bool transPoint(const Vec3d &p, const Mat4d &MVP, Vec3d &screenPos) const;
+
+    bool rejectClip(const VertexOutput& a, const VertexOutput& b, const VertexOutput& c) const;
+    bool acceptClip(const VertexOutput& a, const VertexOutput& b, const VertexOutput& c) const;
+    double side(const VertexOutput& v, int plane) const;
+    VertexOutput lerpOut(const VertexOutput& a, const VertexOutput& b, double t) const;
+    std::vector<VertexOutput> clipPlane(const std::vector<VertexOutput>& poly, int plane) const;
+    std::vector<VertexOutput> clipFrustum(const VertexOutput& a, const VertexOutput& b, const VertexOutput& c) const;
+
 };

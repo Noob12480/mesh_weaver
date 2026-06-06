@@ -57,7 +57,7 @@ private:
     Vec3d lightColor = Vec3d(1.0, 1.0, 1.0);
 
     double ka = 0.2;
-    double kd = 0.75;
-    double ks = 0.15;
+    double kd = 0.45;
+    double ks = 0.75;
     double shininess = 32.0;
 };

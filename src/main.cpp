@@ -154,12 +154,12 @@ int main() {
     camera.setPosition(Vec3d(0, 0, 5));
     camera.setTarget(Vec3d(0, 0, 0));
     camera.setUp(Vec3d(0, 1, 0));
-    camera.setPerspective(90, 1.0, 0.1, 100.0);
+    camera.setPerspective(90, 1.0, 0.001, 100.0);
     
     Win32Window window(512, 512, L"Mesh Lab");
     //模型
-    //std::string filename="assets/FinalBaseMesh.obj";
-    std::string filename="assets/coca-cola.obj";
+    std::string filename="assets/FinalBaseMesh.obj";
+    //std::string filename="assets/coca-cola.obj";
     //std::string filename="assets/Low-Poly_Models.obj";
     ObjIO io;
     Mesh mesh;

@@ -1,5 +1,6 @@
 #include"Camera.h"
 #include<math.h>
+#include<iostream>
 constexpr double PI = 3.14159265358979323846;
 Camera::Camera(){
 
@@ -13,6 +14,8 @@ Mat4d Camera::viewMatrix() const{
         0, 0, 0, 1;
     
     Vec3d g=(target-position).normalized();
+
+    Vec3d rightRaw = g.cross(up);
     Vec3d d=g.cross(up).normalized();
     Vec3d t=d.cross(g).normalized();
     Mat4d R;
