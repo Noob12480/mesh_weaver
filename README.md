@@ -10,10 +10,11 @@
 该版本实现了基础cpu软光栅渲染器以及部分优化（视锥裁剪、背面剔除等），并支持.obj模型导入。
 在release模式下可流畅渲染4万+面的模型
 ### 环境
+```
 Windows 11
 Visual Studio 2022
 Eigen 5.0.0
-
+```
 ### 1. 构建
 ```bash
 cmake -S . -B build
@@ -37,7 +38,7 @@ cmake --build build --config Release
 5. 按F切换背面剔除的模式（无，剔除背面，剔除正面）
 
 ### 4. 项目结构
-
+```
 src/
 ├── core/          数学类型
 ├── geometry/      Mesh / HalfEdgeMesh
@@ -46,7 +47,7 @@ src/
 ├── ObjIO.h        obj读取工具
 ├── ObjIO.cpp      obj读取工具
 └── main.cpp       程序入口
-
+```
 ### 5. 注意事项
 
 目前暂不支持纹理贴图，主要以白模渲染和几何结构可视化为主
