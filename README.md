@@ -42,7 +42,7 @@ cmake --build build --config Release
 src/
 ├── core/          数学类型
 ├── geometry/      Mesh / HalfEdgeMesh
-├── renderer/      Rasterizer / Shader / FrameBuffer / Camera
+├── renderer/      Rasterizer / Shader / FrameBuffer / Camera / Material /Texture
 ├── window/        Win32Window
 ├── ObjIO.h        obj读取工具
 ├── ObjIO.cpp      obj读取工具
