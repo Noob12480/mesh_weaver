@@ -2,6 +2,7 @@
 #include"Mesh.h"
 #include<vector>
 #include"core/MathTypes.h"
+#include<unordered_map>
 struct HEVert{
     double x,y,z;
     int edge=-1;
@@ -13,11 +14,31 @@ struct HEEdge{
     int face=-1;
     int next=-1;
     int prev=-1;
-    int texcoord;
+    int texcoord=-1;
 };
 
 struct HEFace{
     int edge=-1;
+};
+
+struct ValidationReport{
+    int vertexCount=0;
+    int halfedgeCount=0;
+    int faceCount=0;
+    int undirectedEdgeCount=0;
+    int boundaryEdgeCount=0;
+    int boundaryVertexCount=0;
+
+    int invalidVertexReference=0;
+    int invalidEdgeReference=0;
+    int invalidFaceReference=0;
+    int invalidNextPrev=0;
+    int invalidPair=0;
+    int degenerateFace=0;
+    int nonManifoldEdge=0;
+    int isolatedVertex=0;
+
+    bool ok=true;
 };
 
 class HalfEdgeMesh {
@@ -34,9 +55,12 @@ public:
     int edgeTexcoord(int e) const { return edges[e].texcoord; }
 
     bool validate() const;
+    ValidationReport validateReport() const;
+    void printValidationReport(const ValidationReport &report) const;
 
     std::vector<int> faceVertices(int faceId) const;
     std::vector<int> faceEdges(int faceId) const;
+    std::vector<int> faceTexcoords(int faceId) const;
 
     int edgeOrigin(int edgeId) const;
     int edgeTarget(int edgeId) const;
@@ -46,6 +70,11 @@ public:
     std::vector<int> vertexFaces(int vertId) const;
     bool isBoundaryEdge(int edgeId) const;
     bool isBoundaryVertex(int vertId) const;
+    std::vector<std::vector<int>> boundaryLoops() const;
+
+    void dumpFace(int faceId) const;
+    void dumpEdge(int edgeId) const;
+    void dumpVertex(int vertId) const;
 
 private:
     std::vector<HEVert> vertices;

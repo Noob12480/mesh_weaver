@@ -4,6 +4,7 @@
 #include"core/MathTypes.h"
 #include"geometry/HalfEdgeMesh.h"
 #include"Shader.h" 
+#include"geometry/Geometry.h"
 
 enum class CullMode {
     None,

@@ -8,8 +8,10 @@
 #include"renderer/Rasterizer.h"
 #include"renderer/Camera.h"
 #include"window/Win32Window.h"
+#include"geometry/Geometry.h"
 #include<functional>
 #include<string>
+#include<cmath>
 
 struct ShaderContext {
     Mat4d MVP;
@@ -28,6 +30,10 @@ std::vector<ShaderEntry> shaders;
 int shaderIndex = 0;
 
 void init(){
+
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+
     shaders.push_back({
         "Flat",
         [](const ShaderContext& ctx) {
@@ -143,10 +149,10 @@ std::string cullModeName(CullMode mode) {
     }
 }
 int main(int argc, char** argv) {
-    SetConsoleOutputCP(CP_UTF8);
-    SetConsoleCP(CP_UTF8);
 
     init();
+
+    //test();
     //模型
     std::string filename="assets/models/FinalBaseMesh.obj";
     //std::string filename="assets/coca-cola.obj";
@@ -166,11 +172,11 @@ int main(int argc, char** argv) {
     
     //纹理
     Texture texture;
-    texture.loadPPM("assets/textures/coca-cola-zero.ppm");
+    //texture.loadPPM("assets/textures/coca-cola-zero.ppm");
     //材质
     Material material;
     material.setBaseColor(Vec3d(1.0,1.0,1.0));
-    material.setTexture(&texture);
+    //material.setTexture(&texture);
 
     //光栅化渲染器
     FrameBuffer buffer(512, 512);

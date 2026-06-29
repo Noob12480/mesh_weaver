@@ -26,7 +26,7 @@ cmake --build build --config Release
 支持导入obj模型
 需要指定模型路径
 ```bash
-.\build\Release\mesh_lab.exe assets\coca-cola.obj
+.\build\Release\mesh_weaver.exe assets\coca-cola.obj
 ```
 
 ### 3. 操作

@@ -22,7 +22,7 @@ struct VertexOutput {
 struct BlinnPhong {
     static constexpr double ka = 0.2;
     static constexpr double kd = 0.75;
-    static constexpr double ks = 0.55;
+    static constexpr double ks = 0.25;
     static constexpr double shininess = 32.0;
 
     static Vec3d lightColor() {

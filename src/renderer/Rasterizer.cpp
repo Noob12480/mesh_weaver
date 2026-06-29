@@ -6,51 +6,6 @@ Rasterizer::Rasterizer(FrameBuffer &buffer) : buffer(buffer){}
 double cross(const Vec2d &v1, const Vec2d &v2){
     return v1.x()*v2.y()-v2.x()*v1.y();
 }
-//顶点法线
-std::vector<Vec3d> computeVertNormals(const HalfEdgeMesh& mesh) {
-    const auto& vertices = mesh.getVertices();
-    const auto& faces = mesh.getFaces();
-
-    std::vector<Vec3d> vertNormals(vertices.size(), Vec3d(0, 0, 0));
-
-    auto position = [&](int vid) -> Vec3d {
-        const auto& v=vertices.at(vid);
-        return Vec3d(v.x, v.y, v.z);
-    };
-
-    for (int fid = 0; fid < faces.size(); ++fid) {
-        std::vector<int> vi = mesh.faceVertices(fid);
-        if(vi.size()<3) continue;
-
-        Vec3d faceNormal(0, 0, 0);
-
-        //Newell
-        for (int i=0;i<vi.size();i++) {
-            int j=(i+1)%vi.size();
-            Vec3d p0=position(vi[i]);
-            Vec3d p1=position(vi[j]);
-
-            faceNormal.x()+=(p0.y()-p1.y())*(p0.z()+p1.z());
-            faceNormal.y()+=(p0.z()-p1.z())*(p0.x()+p1.x());
-            faceNormal.z()+=(p0.x()-p1.x())*(p0.y()+p1.y());
-        }
-        if (faceNormal.norm() < 1e-12) continue;
-        faceNormal.normalize();
-
-        for (int vid : vi) {
-            vertNormals.at(vid) += faceNormal;
-        }
-    }
-    for (auto& n : vertNormals) {
-        if (n.norm() > 1e-12) {
-            n.normalize();
-        } else {
-            n = Vec3d(0, 0, 1);
-        }
-    }
-
-    return vertNormals;
-}
 
 void Rasterizer::drawTriangle2D(const Vec2d& p0,const Vec2d& p1,const Vec2d& p2,const Vec3d& color){
     //AABB
@@ -302,36 +257,29 @@ void Rasterizer::drawMesh(const HalfEdgeMesh &mesh, const Shader &shader){
     std::vector<Vec3d> vertNormals;
 
     if(shader.needVertNormal()){
-        vertNormals=computeVertNormals(mesh);
+        vertNormals=GeometryCore::computeVertexNormals(mesh);
     }
-    //恢复faceCorner顺序
+    
     const auto& verts = mesh.getVertices();
     const auto& texcoords = mesh.getTexcoords();
     int texSize = static_cast<int>(texcoords.size());
 
     for(int i=0;i<mesh.getFaces().size();i++){
-        std::vector<int> ei=mesh.faceEdges(i);
+        std::vector<int> cornerVerts=mesh.faceVertices(i);
+        std::vector<int> cornerTexcoords=mesh.faceTexcoords(i);
 
-        if(ei.size()<3) continue;
+        if(cornerVerts.size()<3) continue;
 
-        std::vector<int> cornerVerts;
         std::vector<Vec2d> cornerUVs;
 
-        cornerVerts.reserve(ei.size());
-        cornerUVs.reserve(ei.size());
+        cornerUVs.reserve(cornerTexcoords.size());
 
-        for (auto e:ei) {
-            int vid = mesh.edgeOrigin(e);
-
-            int pe = mesh.getEdges().at(e).prev;
-            int vt = mesh.edgeTexcoord(pe);
-
+        for(auto vt:cornerTexcoords){
             Vec2d uv(0.0, 0.0);
-            if (vt >= 0 && vt < texSize) {
-                uv = texcoords.at(vt);
+            if(vt>=0&&vt<texSize){
+                uv=texcoords.at(vt);
             }
 
-            cornerVerts.push_back(vid);
             cornerUVs.push_back(uv);
         }
 
