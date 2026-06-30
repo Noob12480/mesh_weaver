@@ -252,12 +252,9 @@ void Rasterizer::drawTriangle3D(const VertexOutput &o0,const VertexOutput &o1,co
     }
 }
 
-void Rasterizer::drawMesh(const HalfEdgeMesh &mesh, const Shader &shader){
-    //顶点法线
-    std::vector<Vec3d> vertNormals;
-
-    if(shader.needVertNormal()){
-        vertNormals=GeometryCore::computeVertexNormals(mesh);
+void Rasterizer::drawMesh(const HalfEdgeMesh &mesh, const Shader &shader, const std::vector<Vec3d> &vertexNormals){
+    if(shader.needVertNormal()&&vertexNormals.size()!=mesh.getVertices().size()){
+        return;
     }
     
     const auto& verts = mesh.getVertices();
@@ -324,9 +321,9 @@ void Rasterizer::drawMesh(const HalfEdgeMesh &mesh, const Shader &shader){
             VertexInput v0={p0,fn,uv0},v1={p1,fn,uv1},v2={p2,fn,uv2};
 
             if(shader.needVertNormal()){
-                v0.vertNormal=vertNormals[vertId0];
-                v1.vertNormal=vertNormals[vertId1];
-                v2.vertNormal=vertNormals[vertId2];
+                v0.vertNormal=vertexNormals[vertId0];
+                v1.vertNormal=vertexNormals[vertId1];
+                v2.vertNormal=vertexNormals[vertId2];
             }
 
             VertexOutput o0,o1,o2;

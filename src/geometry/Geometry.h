@@ -18,3 +18,9 @@ public:
     static std::vector<Vec3d> computeVertexNormals(const HalfEdgeMesh &mesh);
     static int eulerCharacteristic(const HalfEdgeMesh &mesh);
 };
+
+class GeometryProcessing{
+public:
+    static void uniformLaplacianSmooth(HalfEdgeMesh &mesh, double lambda, int iterations, bool preserveBoundary);
+    static void taubinSmooth(HalfEdgeMesh &mesh, double lambda, double mu, int iterations, bool preserveBoundary);
+};

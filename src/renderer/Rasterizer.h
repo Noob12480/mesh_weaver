@@ -28,7 +28,7 @@ public:
 
     void drawTriangle(const VertexOutput &o0,const VertexOutput &o1,const VertexOutput &o2,const Shader &shader);
     void drawTriangle3D(const VertexOutput &o0,const VertexOutput &o1,const VertexOutput &o2, const Shader &shader);
-    void drawMesh(const HalfEdgeMesh &mesh, const Shader &shader);
+    void drawMesh(const HalfEdgeMesh &mesh, const Shader &shader, const std::vector<Vec3d> &vertexNormals);
 
     void setCullMode(CullMode mode){cullMode = mode;}
     CullMode getCullMode() const{return cullMode;}

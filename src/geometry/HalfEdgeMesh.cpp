@@ -329,7 +329,15 @@ void HalfEdgeMesh::printValidationReport(const ValidationReport &report) const {
 
     std::cout<<"结果 "<<report.ok<<'\n';
 }
+void HalfEdgeMesh::setVertexPosition(int vertId, const Vec3d &pos){
+    if(vertId<0||vertId>=vertices.size()){
+        return;
+    }
 
+    vertices.at(vertId).x=pos.x();
+    vertices.at(vertId).y=pos.y();
+    vertices.at(vertId).z=pos.z();
+}
 std::vector<int> HalfEdgeMesh::faceVertices(int faceId) const {
     const HEFace &f=faces.at(faceId);
     int edgeId=f.edge;
@@ -412,81 +420,148 @@ int HalfEdgeMesh::edgeTarget(int edgeId) const {
 }
 
 std::vector<int> HalfEdgeMesh::vertexNeighbors(int vertId) const {
-    const HEVert &vert=vertices.at(vertId);
+    std::vector<int> result;
 
-    std::vector<int> v;
+    if(vertId<0||vertId>=vertices.size()){
+        return result;
+    }
 
-    int startEdgeId=vert.edge;
-    int cur=vert.edge;
-    while(true){
-        const HEEdge &edge=edges.at(cur);
-        
-        v.push_back(edge.vert);
-        
-        if(edge.pair==-1){
-            break;
+    std::vector<int> incidentEdges=vertexEdges(vertId);
+    std::vector<int> used(vertices.size(), 0);
+
+    for(auto edgeId:incidentEdges){
+        int origin=edgeOrigin(edgeId);
+        int target=edgeTarget(edgeId);
+        int neighbor=-1;
+
+        if(origin==vertId){
+            neighbor=target;
+        } else if(target==vertId){
+            neighbor=origin;
         }
-
-        const HEEdge &pairEdge=edges.at(edge.pair);
-        cur=pairEdge.next;
-
-        if(cur==startEdgeId){
-            break;
+        if(neighbor>=0&&neighbor<vertices.size()&&!used.at(neighbor)){
+            used.at(neighbor)=1;
+            result.push_back(neighbor);
         }
     }
-    return v;
+    return result;
 }
 
 std::vector<int> HalfEdgeMesh::vertexEdges(int vertId) const {
-    const HEVert &vert=vertices.at(vertId);
+    std::vector<int> result;
 
-    std::vector<int> e;
-
-    int startEdgeId=vert.edge;
-    int cur=vert.edge;
-    while(true){
-        const HEEdge &edge=edges.at(cur);
-        
-        e.push_back(cur);
-        
-        if(edge.pair==-1){
-            break;
-        }
-
-        const HEEdge &pairEdge=edges.at(edge.pair);
-        cur=pairEdge.next;
-
-        if(cur==startEdgeId){
-            break;
-        }
+    if(vertId<0||vertId>=vertices.size()){
+        return result;
     }
-    return e;
+
+    int start=vertices.at(vertId).edge;
+    if(start<0||start>=edges.size()){
+        return result;
+    }
+
+    std::vector<int> used(edges.size(), 0);
+    auto addEdge=[&](int edgeId){
+        if(edgeId<0||edgeId>=edges.size()){
+            return;
+        }
+        if(used.at(edgeId)){
+            return;
+        }
+        int origin=edgeOrigin(edgeId);
+        int target=edgeTarget(edgeId);
+        if(origin!=vertId&&target!=vertId){
+            return;
+        }
+        used.at(edgeId)=1;
+        result.push_back(edgeId);
+    };
+
+    addEdge(start);
+
+    int cur=start;
+    while(true){
+        int pair=edges.at(cur).pair;
+        if(pair<0||pair>=edges.size()){
+            break;
+        }
+        int next=edges.at(pair).next;
+        if(next<0||next>=edges.size()||next==start){
+            break;
+        }
+        if(edgeOrigin(next)!=vertId){
+            break;
+        }
+        if(used.at(next)){
+            break;
+        }
+        addEdge(next);
+        cur=next;
+    }
+
+    cur=start;
+    while(true){
+        int prev=edges.at(cur).prev;
+
+        if(prev<0||prev>=edges.size()){
+            break;
+        }
+        int pair=edges.at(prev).pair;
+        if(pair<0||pair>=edges.size()){
+            addEdge(prev);
+            break;
+        }
+        if(pair==start){
+            break;
+        }
+        if(edgeOrigin(pair)!=vertId){
+            break;
+        }
+        if(used.at(pair)){
+            break;
+        }
+        addEdge(pair);
+        cur=pair;
+    }
+    return result;
 }
 
 std::vector<int> HalfEdgeMesh::vertexFaces(int vertId) const {
-    const HEVert &vert=vertices.at(vertId);
+    std::vector<int> result;
 
-    std::vector<int> f;
+    if(vertId<0||vertId>=vertices.size()){
+        return result;
+    }
 
-    int startEdgeId=vert.edge;
-    int cur=vert.edge;
-    while(true){
-        const HEEdge &edge=edges.at(cur);
-        
-        f.push_back(edge.face);
-        
-        if(edge.pair==-1){
-            break;
+    std::vector<int> incidentEdges=vertexEdges(vertId);
+    std::vector<int> used(faces.size(), 0);
+
+    auto addFace=[&](int faceId){
+        if(faceId<0||faceId>=faces.size()){
+            return;
         }
 
-        const HEEdge &pairEdge=edges.at(edge.pair);
-        cur=pairEdge.next;
+        if(used.at(faceId)){
+            return;
+        }
 
-        if(cur==startEdgeId){
-            break;
+        used.at(faceId)=1;
+        result.push_back(faceId);
+    };
+
+    for(auto edgeId:incidentEdges){
+        if(edgeId<0||edgeId>=edges.size()){
+            continue;
+        }
+
+        addFace(edges.at(edgeId).face);
+
+        int pair=edges.at(edgeId).pair;
+        if(pair>=0&&pair<edges.size()){
+            addFace(edges.at(pair).face);
         }
     }
-    return f;
+
+    return result;
 }
 
 bool HalfEdgeMesh::isBoundaryEdge(int edgeId) const {

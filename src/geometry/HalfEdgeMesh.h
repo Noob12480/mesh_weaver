@@ -45,6 +45,7 @@ class HalfEdgeMesh {
 public:
     bool buildFromMesh(const Mesh &mesh);
     const std::vector<HEVert>& getVertices() const { return vertices;};
+    void setVertexPosition(int vertId, const Vec3d &pos);
     const std::vector<HEEdge>& getEdges() const { return edges; };
     const std::vector<HEFace>& getFaces() const { return faces; };
     const std::vector<Vec2d>& getTexcoords() const { return texcoords; }

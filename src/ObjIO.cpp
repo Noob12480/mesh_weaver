@@ -73,6 +73,83 @@ bool ObjIO::load(const std::string &filename, Mesh &mesh){
     return true;
 }
 bool ObjIO::save(const std::string &filename, const Mesh &mesh){
-    
-    return false;
+    std::ofstream out(filename);
+    if(!out.is_open()){
+        std::cerr<<"文件保存失败"<<'\n';
+        return false;
+    }
+    for(auto p:mesh.positions){
+        out<<"v "<<p.x()<<" "<<p.y()<<" "<<p.z()<<'\n';
+    }
+    for(auto uv:mesh.texcoords){
+        out<<"vt "<<uv.x()<<" "<<uv.y()<<'\n';
+    }
+    for(auto n:mesh.normals){
+        out<<"vn "<<n.x()<<" "<<n.y()<<" "<<n.z()<<'\n';
+    }
+    for(auto face:mesh.faces){
+        out<<"f";
+
+        for(auto idx:face.indices){
+            out<<" "<<idx.v+1;
+
+            if(idx.vt>=0||idx.vn>=0){
+                out<<"/";
+
+                if(idx.vt>=0){
+                    out<<idx.vt+1;
+                }
+
+                if(idx.vn>=0){
+                    out<<"/"<<idx.vn+1;
+                }
+            }
+        }
+        out<<'\n';
+    }
+    std::cout<<"保存完成："<<filename<<'\n';
+    return true;
+}
+bool ObjIO::save(const std::string &filename, const HalfEdgeMesh &mesh){
+    std::ofstream out(filename);
+    if(!out.is_open()){
+        std::cerr<<"文件保存失败"<<'\n';
+        return false;
+    }
+
+    const std::vector<HEVert> &vertices=mesh.getVertices();
+    const std::vector<Vec2d> &texcoords=mesh.getTexcoords();
+
+    for(auto v:vertices){
+        out<<"v "<<v.x<<" "<<v.y<<" "<<v.z<<'\n';
+    }
+
+    for(auto uv:texcoords){
+        out<<"vt "<<uv.x()<<" "<<uv.y()<<'\n';
+    }
+
+    for(int i=0; i<mesh.getFaces().size(); i++){
+        std::vector<int> verts=mesh.faceVertices(i);
+        std::vector<int> uvs=mesh.faceTexcoords(i);
+        if(verts.size()<3){
+            continue;
+        }
+
+        out<<"f";
+        for(int j=0; j<verts.size(); j++){
+            int v=verts.at(j);
+            int vt=-1;
+            if(j<uvs.size()){
+                vt=uvs.at(j);
+            }
+            out<<" "<<v+1;
+
+            if(vt>=0){
+                out<<"/"<<vt+1;
+            }
+        }
+        out<<'\n';
+    }
+    std::cout<<"保存完成："<<filename<<'\n';
+    return true;
 }
